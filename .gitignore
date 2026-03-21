@@ -1,0 +1,10 @@
+# Private info
+wireguard/wg0.conf
+*.key
+*.pem
+
+# Private data
+*/data/
+*/config/
+grafana/data/
+prometheus/data/
