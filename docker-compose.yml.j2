@@ -152,7 +152,7 @@ services:
     container_name: tailscale
     hostname: cristi_home
     environment:
-      - TS_AUTHKEY=tskey-auth-k2eYpVaDax11CNTRL-8vGJ1hpa74Mhh13oZnaT4M7GvEKbhHyT6  # Auth key
+      - TS_AUTHKEY={{ tailscale_authkey }}  # Auth key
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_EXTRA_ARGS=--advertise-routes=192.168.2.0/24 --accept-routes
     volumes:

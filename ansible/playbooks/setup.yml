@@ -1,0 +1,90 @@
+- name: Homelab setup
+  hosts: mediaserver
+  become: true
+  vars_prompt:
+    - name: docker_dir
+      prompt: "Enter your homelab root directory (where docker-compose.yml lives)"
+      default: "/mnt/c/Dockers"
+      private: false
+    - name: tailscale_authkey
+      prompt: "Enter your Tailscale auth key"
+      private: true
+    - name: mullvad_private_key
+      prompt: "Enter your Mullvad WireGuard private key"
+      private: true
+  tasks:
+    - name: Detect server IP
+      shell: "hostname -I | awk '{print $1}'"
+      register: detected_ip
+      changed_when: false
+
+    - name: Set server IP
+      set_fact:
+        server_ip: "{{ detected_ip.stdout }}"
+
+    - name: Show detected IP
+      debug:
+        msg: "Using server IP: {{ server_ip }}"
+
+    - name: Set repo directory
+      set_fact:
+        repo_dir: "{{ playbook_dir }}/../.."
+
+    - name: Create parent directories
+      shell: "mkdir -p {{ item }}"
+      register: mkdir_result
+      failed_when:
+        - mkdir_result.rc != 0
+        - "'File exists' not in mkdir_result.stderr"
+      loop:
+        - "{{ docker_dir }}/media/movies"
+        - "{{ docker_dir }}/media/tvshows"
+
+    - name: Create child directories
+      shell: "mkdir -p {{ item }}"
+      register: mkdir_result
+      failed_when:
+        - mkdir_result.rc != 0
+        - "'File exists' not in mkdir_result.stderr"
+        - "'No such file or directory' not in mkdir_result.stderr"
+      loop:
+        - "{{ docker_dir }}/media/movies/_incoming"
+        - "{{ docker_dir }}/media/tvshows/_incoming"
+        - "{{ docker_dir }}/radarr/config"
+        - "{{ docker_dir }}/sonarr/config"
+        - "{{ docker_dir }}/qbittorrent/appdata"
+        - "{{ docker_dir }}/prowlarr/data"
+        - "{{ docker_dir }}/jellyfin/config"
+        - "{{ docker_dir }}/bazarr/config"
+        - "{{ docker_dir }}/wireguard/config/wg_confs"
+        - "{{ docker_dir }}/prometheus/config"
+        - "{{ docker_dir }}/prometheus/data"
+        - "{{ docker_dir }}/grafana/data"
+        - "{{ docker_dir }}/homepage/config"
+        - "{{ docker_dir }}/portainer/data"
+        - "{{ docker_dir }}/tailscale/state"
+
+    - name: Deploy docker-compose file
+      template:
+        src: "{{ repo_dir }}/docker-compose.yml.j2"
+        dest: "{{ docker_dir }}/docker-compose.yml"
+
+    - name: Deploy WireGuard config
+      template:
+        src: "{{ repo_dir }}/wireguard/wg0.conf.j2"
+        dest: "{{ docker_dir }}/wireguard/config/wg_confs/wg0.conf"
+
+    - name: Copy prometheus config
+      copy:
+        src: "{{ repo_dir }}/prometheus/prometheus.yml"
+        dest: "{{ docker_dir }}/prometheus/config/prometheus.yml"
+
+    - name: Deploy homepage services config
+      template:
+        src: "{{ repo_dir }}/homepage/services.yaml.j2"
+        dest: "{{ docker_dir }}/homepage/config/services.yaml"
+
+    - name: Start all containers
+      command: docker compose up -d
+      args:
+        chdir: "{{ docker_dir }}"

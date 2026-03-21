@@ -1,39 +1,37 @@
 - Media:
     - Jellyfin:
         icon: jellyfin.png
-        href: http://192.168.2.12:8096
+        href: http://{{ server_ip }}:8096
         description: Media server
     - Radarr:
         icon: radarr.png
-        href: http://192.168.2.12:7878
+        href: http://{{ server_ip }}:7878
         description: Movies
     - Sonarr:
         icon: sonarr.png
-        href: http://192.168.2.12:8989
+        href: http://{{ server_ip }}:8989
         description: TV Shows
     - Bazarr:
         icon: bazarr.png
-        href: http://192.168.2.12:6767
+        href: http://{{ server_ip }}:6767
         description: Subtitles
 
 - Downloads:
     - qBittorrent:
         icon: qbittorrent.png
-        href: http://192.168.2.12:8080
+        href: http://{{ server_ip }}:8080
         description: Torrent client
     - Prowlarr:
         icon: prowlarr.png
-        href: http://192.168.2.12:9696
+        href: http://{{ server_ip }}:9696
         description: Indexer manager
 
 - Management:
     - Portainer:
         icon: portainer.png
-        href: https://192.168.2.12:9443
+        href: https://{{ server_ip }}:9443
         description: Docker management
-
-- Monitoring:
     - Grafana:
         icon: grafana.png
-        href: http://192.168.2.12:3001
+        href: http://{{ server_ip }}:3001
         description: Monitoring dashboard
