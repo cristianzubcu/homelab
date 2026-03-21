@@ -10,7 +10,7 @@ services:
       - PGID=1000
       - TZ=Europe/Amsterdam
     volumes:
-      - /mnt/c/Dockers/wireguard/config:/config
+      - {{ docker_dir }}/wireguard/config:/config
     ports:
       - 8080:8080
       - 6881:6881
@@ -30,8 +30,8 @@ services:
       - WEBUI_PORT=8080
       - TORRENTING_PORT=6881
     volumes:
-      - /mnt/c/Dockers/qbittorrent/appdata:/config
-      - /mnt/c/Dockers/media:/data
+      - {{ docker_dir }}/qbittorrent/appdata:/config
+      - {{ docker_dir }}/media:/data
     depends_on:
       - wireguard
     restart: unless-stopped
@@ -44,7 +44,7 @@ services:
       - PGID=1000
       - TZ=Europe/Amsterdam
     volumes:
-      - /mnt/c/Dockers/prowlarr/data:/config
+      - {{ docker_dir }}/prowlarr/data:/config
     ports:
       - 9696:9696
     restart: unless-stopped
@@ -57,8 +57,8 @@ services:
       - PGID=1000
       - TZ=Europe/Amsterdam
     volumes:
-      - /mnt/c/Dockers/radarr/config:/config
-      - /mnt/c/Dockers/media:/data
+      - {{ docker_dir }}/radarr/config:/config
+      - {{ docker_dir }}/media:/data
     ports:
       - 7878:7878
     restart: unless-stopped
@@ -74,8 +74,8 @@ services:
       - PGID=1000
       - TZ=Europe/Amsterdam
     volumes:
-      - /mnt/c/Dockers/sonarr/config:/config
-      - /mnt/c/Dockers/media:/data
+      - {{ docker_dir }}/sonarr/config:/config
+      - {{ docker_dir }}/media:/data
     ports:
       - 8989:8989
     restart: unless-stopped
@@ -91,8 +91,8 @@ services:
       - PGID=1000
       - TZ=Europe/Amsterdam
     volumes:
-      - /mnt/c/Dockers/jellyfin/config:/config
-      - /mnt/c/Dockers/media:/data
+      - {{ docker_dir }}/jellyfin/config:/config
+      - {{ docker_dir }}/media:/data
     ports:
       - 8096:8096
       - 8920:8920
@@ -108,8 +108,8 @@ services:
       - PGID=1000
       - TZ=Europe/Amsterdam
     volumes:
-      - /mnt/c/Dockers/bazarr/config:/config
-      - /mnt/c/Dockers/media:/data
+      - {{ docker_dir }}/bazarr/config:/config
+      - {{ docker_dir }}/media:/data
     ports:
       - 6767:6767
     restart: unless-stopped
@@ -123,7 +123,6 @@ services:
       - 8191:8191
     restart: unless-stopped
 
-
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
@@ -131,7 +130,7 @@ services:
       - TZ=Europe/Amsterdam
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /mnt/c/Dockers/portainer/data:/data
+      - {{ docker_dir }}/portainer/data:/data
     ports:
       - 9443:9443
     restart: unless-stopped
@@ -144,32 +143,31 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - /mnt/c/Dockers/homepage/config:/app/config
+      - {{ docker_dir }}/homepage/config:/app/config
     restart: unless-stopped
 
   tailscale:
     image: tailscale/tailscale:latest
     container_name: tailscale
-    hostname: cristi_home
+    hostname: mediaserver
     environment:
-      - TS_AUTHKEY={{ tailscale_authkey }}  # Auth key
+      - TS_AUTHKEY={{ tailscale_authkey }}
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_EXTRA_ARGS=--advertise-routes=192.168.2.0/24 --accept-routes
     volumes:
-      - /mnt/c/Dockers/tailscale/state:/var/lib/tailscale
+      - {{ docker_dir }}/tailscale/state:/var/lib/tailscale
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
     restart: unless-stopped
 
-
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - /mnt/c/Dockers/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
-      - /mnt/c/Dockers/prometheus/data:/prometheus
+      - {{ docker_dir }}/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - {{ docker_dir }}/prometheus/data:/prometheus
     ports:
       - 9090:9090
     command:
@@ -184,7 +182,7 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
-      - /mnt/c/Dockers/grafana/data:/var/lib/grafana
+      - {{ docker_dir }}/grafana/data:/var/lib/grafana
     ports:
       - 3001:3000
     restart: unless-stopped
