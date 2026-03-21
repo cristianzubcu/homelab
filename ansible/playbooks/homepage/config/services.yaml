@@ -1,0 +1,37 @@
+- Media:
+    - Jellyfin:
+        icon: jellyfin.png
+        href: //:8096
+        description: Media server
+    - Radarr:
+        icon: radarr.png
+        href: //:7878
+        description: Movies
+    - Sonarr:
+        icon: sonarr.png
+        href: //:8989
+        description: TV Shows
+    - Bazarr:
+        icon: bazarr.png
+        href: //:6767
+        description: Subtitles
+
+- Downloads:
+    - qBittorrent:
+        icon: qbittorrent.png
+        href: //:8080
+        description: Torrent client
+    - Prowlarr:
+        icon: prowlarr.png
+        href: //:9696
+        description: Indexer manager
+
+- Management:
+    - Portainer:
+        icon: portainer.png
+        href: //:9443
+        description: Docker management
+    - Grafana:
+        icon: grafana.png
+        href: //:3001
+        description: Monitoring

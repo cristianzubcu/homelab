@@ -1,31 +1,25 @@
 - name: Homelab setup
   hosts: mediaserver
-  become: true
   vars_prompt:
     - name: docker_dir
-      prompt: "Enter your homelab root directory (where docker-compose.yml lives)"
-      default: "/mnt/c/Dockers"
+      prompt: "Enter your homelab root directory (where the docker-compose.yml will live)"
+      default: "."
       private: false
-    - name: tailscale_authkey
-      prompt: "Enter your Tailscale auth key"
-      private: true
+
     - name: mullvad_private_key
       prompt: "Enter your Mullvad WireGuard private key"
       private: true
+
+    - name: install_tailscale
+      prompt: "Install Tailscale for remote access? (yes/no)"
+      default: "yes"
+      private: false
+
+    - name: tailscale_authkey
+      prompt: "Enter your Tailscale auth key (press Enter to skip if not installing Tailscale)"
+      private: true
+      
   tasks:
-    - name: Detect server IP
-      shell: "hostname -I | awk '{print $1}'"
-      register: detected_ip
-      changed_when: false
-
-    - name: Set server IP
-      set_fact:
-        server_ip: "{{ detected_ip.stdout }}"
-
-    - name: Show detected IP
-      debug:
-        msg: "Using server IP: {{ server_ip }}"
-
     - name: Set repo directory
       set_fact:
         repo_dir: "{{ playbook_dir }}/../.."
@@ -62,7 +56,14 @@
         - "{{ docker_dir }}/grafana/data"
         - "{{ docker_dir }}/homepage/config"
         - "{{ docker_dir }}/portainer/data"
-        - "{{ docker_dir }}/tailscale/state"
+
+    - name: Create Tailscale directory
+      shell: "mkdir -p {{ docker_dir }}/tailscale/state"
+      register: mkdir_result
+      failed_when:
+        - mkdir_result.rc != 0
+        - "'File exists' not in mkdir_result.stderr"
+      when: install_tailscale == "yes"
 
     - name: Deploy docker-compose file
       template:
@@ -79,9 +80,9 @@
         src: "{{ repo_dir }}/prometheus/prometheus.yml"
         dest: "{{ docker_dir }}/prometheus/config/prometheus.yml"
 
-    - name: Deploy homepage services config
-      template:
-        src: "{{ repo_dir }}/homepage/services.yaml.j2"
+    - name: Copy homepage services config
+      copy:
+        src: "{{ repo_dir }}/homepage/services.yaml"
         dest: "{{ docker_dir }}/homepage/config/services.yaml"
 
     - name: Start all containers

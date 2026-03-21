@@ -1,6 +1,5 @@
 - name: Backup all configs
   hosts: mediaserver
-  become: true
   vars_prompt:
     - name: docker_dir
       prompt: "Enter your homelab root directory (where docker-compose.yml lives)"

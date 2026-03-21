@@ -1,0 +1,56 @@
+(N) 2026-03-21T21:42:04 - qBittorrent v5.1.4 started. Process ID: 147
+(N) 2026-03-21T21:42:04 - Using config directory: /config/qBittorrent
+(N) 2026-03-21T21:42:04 - Trying to listen on the following list of IP addresses: "0.0.0.0:6881,[::]:6881"
+(I) 2026-03-21T21:42:04 - Peer ID: "-qB5140-"
+(I) 2026-03-21T21:42:04 - HTTP User-Agent: "qBittorrent/5.1.4"
+(I) 2026-03-21T21:42:04 - Distributed Hash Table (DHT) support: ON
+(I) 2026-03-21T21:42:04 - Local Peer Discovery support: ON
+(I) 2026-03-21T21:42:04 - Peer Exchange (PeX) support: ON
+(I) 2026-03-21T21:42:04 - Anonymous mode: OFF
+(I) 2026-03-21T21:42:04 - Encryption support: ON
+(I) 2026-03-21T21:42:04 - Successfully listening on IP. IP: "127.0.0.1". Port: "TCP/6881"
+(I) 2026-03-21T21:42:04 - Successfully listening on IP. IP: "127.0.0.1". Port: "UTP/6881"
+(I) 2026-03-21T21:42:04 - Successfully listening on IP. IP: "172.19.0.9". Port: "TCP/6881"
+(I) 2026-03-21T21:42:04 - Successfully listening on IP. IP: "172.19.0.9". Port: "UTP/6881"
+(I) 2026-03-21T21:42:04 - Successfully listening on IP. IP: "::1". Port: "TCP/6881"
+(I) 2026-03-21T21:42:04 - Successfully listening on IP. IP: "::1". Port: "UTP/6881"
+(W) 2026-03-21T21:42:04 - Couldn't load IP geolocation database. Reason: No such file or directory
+(N) 2026-03-21T21:42:04 - Using built-in WebUI.
+(W) 2026-03-21T21:42:04 - Couldn't load WebUI translation for selected locale (C).
+(N) 2026-03-21T21:42:04 - WebUI: Now listening on IP: *, port: 8080
+(W) 2026-03-21T21:42:04 - Couldn't download IP geolocation database file. Reason: An unknown network-related error was detected
+(N) 2026-03-21T21:55:22 - qBittorrent termination initiated
+(N) 2026-03-21T21:55:22 - Saving resume data completed.
+(N) 2026-03-21T21:55:22 - BitTorrent session successfully finished.
+(N) 2026-03-21T21:55:22 - qBittorrent is now ready to exit
+(N) 2026-03-21T21:55:24 - qBittorrent v5.1.4 started. Process ID: 144
+(N) 2026-03-21T21:55:24 - Using config directory: /config/qBittorrent
+(N) 2026-03-21T21:55:24 - Trying to listen on the following list of IP addresses: "0.0.0.0:6881,[::]:6881"
+(I) 2026-03-21T21:55:24 - Peer ID: "-qB5140-"
+(I) 2026-03-21T21:55:24 - HTTP User-Agent: "qBittorrent/5.1.4"
+(I) 2026-03-21T21:55:24 - Distributed Hash Table (DHT) support: ON
+(I) 2026-03-21T21:55:24 - Local Peer Discovery support: ON
+(I) 2026-03-21T21:55:24 - Peer Exchange (PeX) support: ON
+(I) 2026-03-21T21:55:24 - Anonymous mode: OFF
+(I) 2026-03-21T21:55:24 - Encryption support: ON
+(I) 2026-03-21T21:55:24 - Successfully listening on IP. IP: "127.0.0.1". Port: "TCP/6881"
+(I) 2026-03-21T21:55:24 - Successfully listening on IP. IP: "127.0.0.1". Port: "UTP/6881"
+(I) 2026-03-21T21:55:24 - Successfully listening on IP. IP: "172.19.0.9". Port: "TCP/6881"
+(I) 2026-03-21T21:55:24 - Successfully listening on IP. IP: "172.19.0.9". Port: "UTP/6881"
+(I) 2026-03-21T21:55:24 - Successfully listening on IP. IP: "10.74.34.21". Port: "TCP/6881"
+(I) 2026-03-21T21:55:24 - Successfully listening on IP. IP: "10.74.34.21". Port: "UTP/6881"
+(I) 2026-03-21T21:55:24 - Successfully listening on IP. IP: "::1". Port: "TCP/6881"
+(I) 2026-03-21T21:55:24 - Successfully listening on IP. IP: "::1". Port: "UTP/6881"
+(W) 2026-03-21T21:55:24 - Couldn't load IP geolocation database. Reason: No such file or directory
+(N) 2026-03-21T21:55:24 - Using built-in WebUI.
+(W) 2026-03-21T21:55:24 - Couldn't load WebUI translation for selected locale (C).
+(N) 2026-03-21T21:55:24 - WebUI: Now listening on IP: *, port: 8080
+(I) 2026-03-21T21:55:24 - Detected external IP. IP: "193.32.249.137"
+(I) 2026-03-21T21:55:24 - Detected external IP. IP: "77.171.164.48"
+(I) 2026-03-21T21:55:24 - IP geolocation database loaded. Type: DBIP-Country-Lite. Build time: Sun Mar 1 03:42:44 2026.
+(I) 2026-03-21T21:55:24 - Successfully updated IP geolocation database.
+(N) 2026-03-21T21:55:32 - WebAPI login success. IP: ::ffff:172.19.0.1
+(N) 2026-03-21T21:57:08 - qBittorrent termination initiated
+(N) 2026-03-21T21:57:08 - Saving resume data completed.
+(N) 2026-03-21T21:57:08 - BitTorrent session successfully finished.
+(N) 2026-03-21T21:57:08 - qBittorrent is now ready to exit
