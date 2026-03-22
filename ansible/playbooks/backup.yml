@@ -1,3 +1,4 @@
+---
 - name: Backup all configs
   hosts: mediaserver
   vars_prompt:
@@ -7,25 +8,27 @@
       private: false
   tasks:
     - name: Resolve docker_dir path
-      set_fact:
+      ansible.builtin.set_fact:
         docker_dir: "{{ docker_dir | expanduser }}"
 
     - name: Set backup directory
-      set_fact:
+      ansible.builtin.set_fact:
         backup_dir: "{{ docker_dir }}/backups/{{ ansible_date_time.date }}"
 
     - name: Create backup directory
-      shell: "mkdir -p {{ backup_dir }}"
+      ansible.builtin.command: "mkdir -p {{ backup_dir }}"
       register: mkdir_result
+      changed_when: mkdir_result.rc == 0
       failed_when:
         - mkdir_result.rc != 0
         - "'File exists' not in mkdir_result.stderr"
 
     - name: Backup service configs
-      copy:
+      ansible.builtin.copy:
         src: "{{ item.src }}"
         dest: "{{ backup_dir }}/{{ item.name }}/"
         remote_src: true
+        mode: preserve
       loop:
         - { src: "{{ docker_dir }}/radarr/config", name: "radarr" }
         - { src: "{{ docker_dir }}/sonarr/config", name: "sonarr" }

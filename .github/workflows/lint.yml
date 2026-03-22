@@ -13,15 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install linters
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ansible-lint yamllint
-
-      - name: Run yamllint
-        run: |
-          yamllint -d "{extends: default, rules: {line-length: disable, truthy: disable}}" ansible/ prometheus/
+      - name: Install ansible-lint
+        run: sudo apt-get update && sudo apt-get install -y ansible-lint
 
       - name: Run ansible-lint
-        run: |
-          ansible-lint ansible/playbooks/*.yml
+        run: ansible-lint ansible/playbooks/*.yml

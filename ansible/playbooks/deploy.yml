@@ -1,3 +1,4 @@
+---
 - name: Deploy latest changes
   hosts: mediaserver
   vars_prompt:
@@ -21,66 +22,86 @@
       private: true
   tasks:
     - name: Resolve paths
-      set_fact:
+      ansible.builtin.set_fact:
         docker_dir: "{{ docker_dir | expanduser }}"
         repo_dir: "{{ repo_dir | expanduser }}"
 
     - name: Detect server IP
-      shell: |
-        powershell.exe -c "(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { \$_.InterfaceAlias -match 'Ethernet|Wi-Fi' -and \$_.PrefixOrigin -eq 'Dhcp' }).IPAddress" 2>/dev/null | tr -d '\r' | head -1
+      ansible.builtin.shell:
+        cmd: >-
+          powershell.exe -c "(Get-NetIPAddress -AddressFamily IPv4 |
+          Where-Object { \$_.InterfaceAlias -match 'Ethernet|Wi-Fi'
+          -and \$_.PrefixOrigin -eq 'Dhcp' }).IPAddress"
+          2>/dev/null | tr -d '\r' | head -1
       register: detected_ip
       changed_when: false
       ignore_errors: true
 
     - name: Fallback IP detection for Linux
-      shell: "ip route get 8.8.8.8 | grep -oP 'src \\K[0-9.]+'"
+      ansible.builtin.shell:
+        cmd: "ip route get 8.8.8.8 | grep -oP 'src \\K[0-9.]+'"
       register: fallback_ip
       changed_when: false
       when: detected_ip.stdout == ""
       ignore_errors: true
 
     - name: Set detected IP
-      set_fact:
-        auto_ip: "{{ detected_ip.stdout if detected_ip.stdout != '' else (fallback_ip.stdout if fallback_ip is defined and fallback_ip.stdout is defined and fallback_ip.stdout != '' else 'localhost') }}"
+      ansible.builtin.set_fact:
+        auto_ip: >-
+          {{ detected_ip.stdout if detected_ip.stdout != ''
+          else (fallback_ip.stdout
+          if fallback_ip is defined
+          and fallback_ip.stdout is defined
+          and fallback_ip.stdout != ''
+          else 'localhost') }}
 
     - name: Confirm server IP
-      pause:
-        prompt: "Detected server IP: {{ auto_ip }}. Press Enter to accept or type the correct IP"
+      ansible.builtin.pause:
+        prompt: >-
+          Detected server IP: {{ auto_ip }}.
+          Press Enter to accept or type the correct IP
       register: ip_override
 
     - name: Set server IP
-      set_fact:
-        server_ip: "{{ ip_override.user_input if ip_override.user_input != '' else auto_ip }}"
+      ansible.builtin.set_fact:
+        server_ip: >-
+          {{ ip_override.user_input
+          if ip_override.user_input != ''
+          else auto_ip }}
 
     - name: Pull latest from GitHub
-      git:
+      ansible.builtin.git:
         repo: https://github.com/cristianzubcu/homelab.git
         dest: "{{ repo_dir }}"
         version: main
 
     - name: Deploy docker-compose file
-      template:
+      ansible.builtin.template:
         src: "{{ repo_dir }}/docker-compose.yml.j2"
         dest: "{{ docker_dir }}/docker-compose.yml"
+        mode: "0644"
 
     - name: Deploy WireGuard config
-      template:
+      ansible.builtin.template:
         src: "{{ repo_dir }}/wireguard/wg0.conf.j2"
         dest: "{{ docker_dir }}/wireguard/config/wg_confs/wg0.conf"
         mode: "0600"
 
     - name: Copy prometheus config
-      copy:
+      ansible.builtin.copy:
         src: "{{ repo_dir }}/prometheus/prometheus.yml"
         dest: "{{ docker_dir }}/prometheus/config/prometheus.yml"
+        mode: "0644"
         remote_src: true
 
     - name: Deploy homepage services config
-      template:
+      ansible.builtin.template:
         src: "{{ repo_dir }}/homepage/services.yaml.j2"
         dest: "{{ docker_dir }}/homepage/config/services.yaml"
+        mode: "0644"
 
     - name: Restart containers
-      command: docker compose up -d
+      ansible.builtin.command: docker compose up -d
       args:
         chdir: "{{ docker_dir }}"
+      changed_when: true

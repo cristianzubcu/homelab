@@ -1,3 +1,4 @@
+---
 - name: Restore configs from backup
   hosts: mediaserver
   vars_prompt:
@@ -10,33 +11,35 @@
       private: false
   tasks:
     - name: Resolve docker_dir path
-      set_fact:
+      ansible.builtin.set_fact:
         docker_dir: "{{ docker_dir | expanduser }}"
 
     - name: Set backup directory
-      set_fact:
+      ansible.builtin.set_fact:
         backup_dir: "{{ docker_dir }}/backups/{{ backup_date }}"
 
     - name: Check backup exists
-      stat:
+      ansible.builtin.stat:
         path: "{{ backup_dir }}"
       register: backup_check
 
     - name: Fail if backup not found
-      fail:
+      ansible.builtin.fail:
         msg: "Backup not found at {{ backup_dir }}"
       when: not backup_check.stat.exists
 
     - name: Stop containers
-      command: docker compose down
+      ansible.builtin.command: docker compose down
       args:
         chdir: "{{ docker_dir }}"
+      changed_when: true
 
     - name: Restore service configs
-      copy:
+      ansible.builtin.copy:
         src: "{{ backup_dir }}/{{ item.name }}/"
         dest: "{{ item.dest }}"
         remote_src: true
+        mode: preserve
       loop:
         - { name: "radarr", dest: "{{ docker_dir }}/radarr/config/" }
         - { name: "sonarr", dest: "{{ docker_dir }}/sonarr/config/" }
@@ -47,6 +50,7 @@
         - { name: "bazarr", dest: "{{ docker_dir }}/bazarr/config/" }
 
     - name: Start containers
-      command: docker compose up -d
+      ansible.builtin.command: docker compose up -d
       args:
         chdir: "{{ docker_dir }}"
+      changed_when: true

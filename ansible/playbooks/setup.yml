@@ -1,3 +1,4 @@
+---
 - name: Homelab setup
   hosts: mediaserver
   vars_prompt:
@@ -17,48 +18,67 @@
       private: true
   tasks:
     - name: Resolve docker_dir path
-      set_fact:
+      ansible.builtin.set_fact:
         docker_dir: "{{ docker_dir | expanduser }}"
 
     - name: Set repo directory
-      shell: "cd {{ playbook_dir }} && git rev-parse --show-toplevel"
+      ansible.builtin.command: git rev-parse --show-toplevel
+      args:
+        chdir: "{{ playbook_dir }}"
       register: git_root
       changed_when: false
 
     - name: Set repo dir fact
-      set_fact:
+      ansible.builtin.set_fact:
         repo_dir: "{{ git_root.stdout }}"
 
     - name: Detect server IP
-      shell: |
-        powershell.exe -c "(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { \$_.InterfaceAlias -match 'Ethernet|Wi-Fi' -and \$_.PrefixOrigin -eq 'Dhcp' }).IPAddress" 2>/dev/null | tr -d '\r' | head -1
+      ansible.builtin.shell:
+        cmd: >-
+          powershell.exe -c "(Get-NetIPAddress -AddressFamily IPv4 |
+          Where-Object { \$_.InterfaceAlias -match 'Ethernet|Wi-Fi'
+          -and \$_.PrefixOrigin -eq 'Dhcp' }).IPAddress"
+          2>/dev/null | tr -d '\r' | head -1
       register: detected_ip
       changed_when: false
       ignore_errors: true
 
     - name: Fallback IP detection for Linux
-      shell: "ip route get 8.8.8.8 | grep -oP 'src \\K[0-9.]+'"
+      ansible.builtin.shell:
+        cmd: "ip route get 8.8.8.8 | grep -oP 'src \\K[0-9.]+'"
       register: fallback_ip
       changed_when: false
       when: detected_ip.stdout == ""
       ignore_errors: true
 
     - name: Set detected IP
-      set_fact:
-        auto_ip: "{{ detected_ip.stdout if detected_ip.stdout != '' else (fallback_ip.stdout if fallback_ip is defined and fallback_ip.stdout is defined and fallback_ip.stdout != '' else 'localhost') }}"
+      ansible.builtin.set_fact:
+        auto_ip: >-
+          {{ detected_ip.stdout if detected_ip.stdout != ''
+          else (fallback_ip.stdout
+          if fallback_ip is defined
+          and fallback_ip.stdout is defined
+          and fallback_ip.stdout != ''
+          else 'localhost') }}
 
     - name: Confirm server IP
-      pause:
-        prompt: "Detected server IP: {{ auto_ip }}. Press Enter to accept or type the correct IP"
+      ansible.builtin.pause:
+        prompt: >-
+          Detected server IP: {{ auto_ip }}.
+          Press Enter to accept or type the correct IP
       register: ip_override
 
     - name: Set server IP
-      set_fact:
-        server_ip: "{{ ip_override.user_input if ip_override.user_input != '' else auto_ip }}"
+      ansible.builtin.set_fact:
+        server_ip: >-
+          {{ ip_override.user_input
+          if ip_override.user_input != ''
+          else auto_ip }}
 
     - name: Create parent directories
-      shell: "mkdir -p {{ item }}"
+      ansible.builtin.command: "mkdir -p {{ item }}"
       register: mkdir_result
+      changed_when: mkdir_result.rc == 0
       failed_when:
         - mkdir_result.rc != 0
         - "'File exists' not in mkdir_result.stderr"
@@ -67,8 +87,9 @@
         - "{{ docker_dir }}/media/tvshows"
 
     - name: Create service directories
-      shell: "mkdir -p {{ item }}"
+      ansible.builtin.command: "mkdir -p {{ item }}"
       register: mkdir_result
+      changed_when: mkdir_result.rc == 0
       failed_when:
         - mkdir_result.rc != 0
         - "'File exists' not in mkdir_result.stderr"
@@ -90,60 +111,77 @@
         - "{{ docker_dir }}/portainer/data"
 
     - name: Create Tailscale directory
-      shell: "mkdir -p {{ docker_dir }}/tailscale/state"
+      ansible.builtin.command: "mkdir -p {{ docker_dir }}/tailscale/state"
       register: mkdir_result
+      changed_when: mkdir_result.rc == 0
       failed_when:
         - mkdir_result.rc != 0
         - "'File exists' not in mkdir_result.stderr"
       when: install_tailscale == "yes"
 
     - name: Remove prometheus.yml if it is a directory
-      shell: "test -d {{ docker_dir }}/prometheus/config/prometheus.yml && rm -rf {{ docker_dir }}/prometheus/config/prometheus.yml || true"
+      ansible.builtin.command: "test -d {{ docker_dir }}/prometheus/config/prometheus.yml"
+      register: prom_dir_check
+      changed_when: false
+      failed_when: false
+
+    - name: Delete prometheus.yml directory
+      ansible.builtin.file:
+        path: "{{ docker_dir }}/prometheus/config/prometheus.yml"
+        state: absent
+      when: prom_dir_check.rc == 0
 
     - name: Deploy docker-compose file
-      template:
+      ansible.builtin.template:
         src: "{{ repo_dir }}/docker-compose.yml.j2"
         dest: "{{ docker_dir }}/docker-compose.yml"
+        mode: "0644"
 
     - name: Deploy WireGuard config
-      template:
+      ansible.builtin.template:
         src: "{{ repo_dir }}/wireguard/wg0.conf.j2"
         dest: "{{ docker_dir }}/wireguard/config/wg_confs/wg0.conf"
         mode: "0600"
 
     - name: Copy prometheus config
-      copy:
+      ansible.builtin.copy:
         src: "{{ repo_dir }}/prometheus/prometheus.yml"
         dest: "{{ docker_dir }}/prometheus/config/prometheus.yml"
+        mode: "0644"
 
     - name: Deploy homepage services config
-      template:
+      ansible.builtin.template:
         src: "{{ repo_dir }}/homepage/services.yaml.j2"
         dest: "{{ docker_dir }}/homepage/config/services.yaml"
+        mode: "0644"
 
     - name: Start all containers
-      command: docker compose up -d
+      ansible.builtin.command: docker compose up -d
       args:
         chdir: "{{ docker_dir }}"
+      changed_when: true
 
     - name: Wait for qBittorrent to start
-      pause:
+      ansible.builtin.pause:
         seconds: 10
 
     - name: Get qBittorrent temporary password
-      shell: "docker logs qbittorrent 2>&1 | grep 'temporary password' | awk '{print $NF}'"
+      ansible.builtin.shell:
+        cmd: "docker logs qbittorrent 2>&1 | grep 'temporary password' | awk '{print $NF}'"
       register: qbit_password
+      changed_when: false
       ignore_errors: true
 
     - name: Show summary
-      debug:
+      ansible.builtin.debug:
         msg: |
           Homelab is running! Open these in your browser:
             Homepage:     http://{{ server_ip }}:3000
             Jellyfin:     http://{{ server_ip }}:8096
             Radarr:       http://{{ server_ip }}:7878
             Sonarr:       http://{{ server_ip }}:8989
-            qBittorrent:  http://{{ server_ip }}:8080  (password: {{ qbit_password.stdout | default('check docker logs qbittorrent') }})
+            qBittorrent:  http://{{ server_ip }}:8080
+            password:     {{ qbit_password.stdout | default('check docker logs qbittorrent') }}
             Prowlarr:     http://{{ server_ip }}:9696
             Bazarr:       http://{{ server_ip }}:6767
             Grafana:      http://{{ server_ip }}:3001
