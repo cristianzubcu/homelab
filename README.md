@@ -13,7 +13,7 @@ qBittorrent downloads through a Mullvad WireGuard tunnel. Radarr and Sonarr hand
 
 ## Install
 
-If you are not using Linux or WSL2, do NOT proceed.
+THis works best on WSL2 and Windows.
 
 ### Dependencies
 
