@@ -1,8 +1,6 @@
 # Homelab
 
-Automated media server stack with VPN-protected downloads, streaming, monitoring, and remote access.
-
-qBittorrent downloads through a Mullvad WireGuard tunnel. Radarr and Sonarr handle media management. Jellyfin for streaming. Prometheus and Grafana for monitoring. Tailscale provides optional remote access. 
+Homelab stack.
 
 ## Contents
 - [Install](#install)
