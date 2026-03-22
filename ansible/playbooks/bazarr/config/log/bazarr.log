@@ -1,4 +1,0 @@
-2026-03-21 21:42:15|INFO    |root                            |Scheduler will use this timezone: Europe/Amsterdam|
-2026-03-21 21:42:17|INFO    |root                            |Interactive jobs queue started and waiting for tasks|
-2026-03-21 21:42:17|INFO    |waitress                        |BAZARR is started and waiting for requests on: http://***.***.***.***:6767|
-2026-03-21 21:42:17|INFO    |waitress                        |BAZARR is started and waiting for requests on: http://[::]:6767|

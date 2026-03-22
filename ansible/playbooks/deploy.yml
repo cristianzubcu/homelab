@@ -2,24 +2,56 @@
   hosts: mediaserver
   vars_prompt:
     - name: docker_dir
-      prompt: "Enter your homelab root directory (where docker-compose.yml lives)"
-      default: "/mnt/c/Dockers"
+      prompt: "Where is the homelab deployed?"
+      default: "~/homelab-data"
       private: false
     - name: repo_dir
       prompt: "Enter repo clone path"
-      default: "/mnt/c/Dockers/homelab"
+      default: "~/homelab"
       private: false
     - name: mullvad_private_key
       prompt: "Enter your Mullvad WireGuard private key"
       private: true
     - name: install_tailscale
       prompt: "Install Tailscale for remote access? (yes/no)"
-      default: "yes"
+      default: "no"
       private: false
     - name: tailscale_authkey
-      prompt: "Enter your Tailscale auth key (press Enter to skip if not installing Tailscale)"
+      prompt: "Enter your Tailscale auth key (press Enter to skip)"
       private: true
   tasks:
+    - name: Resolve paths
+      set_fact:
+        docker_dir: "{{ docker_dir | expanduser }}"
+        repo_dir: "{{ repo_dir | expanduser }}"
+
+    - name: Detect server IP
+      shell: |
+        powershell.exe -c "(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { \$_.InterfaceAlias -match 'Ethernet|Wi-Fi' -and \$_.PrefixOrigin -eq 'Dhcp' }).IPAddress" 2>/dev/null | tr -d '\r' | head -1
+      register: detected_ip
+      changed_when: false
+      ignore_errors: true
+
+    - name: Fallback IP detection for Linux
+      shell: "ip route get 8.8.8.8 | grep -oP 'src \\K[0-9.]+'"
+      register: fallback_ip
+      changed_when: false
+      when: detected_ip.stdout == ""
+      ignore_errors: true
+
+    - name: Set detected IP
+      set_fact:
+        auto_ip: "{{ detected_ip.stdout if detected_ip.stdout != '' else (fallback_ip.stdout if fallback_ip is defined and fallback_ip.stdout is defined and fallback_ip.stdout != '' else 'localhost') }}"
+
+    - name: Confirm server IP
+      pause:
+        prompt: "Detected server IP: {{ auto_ip }}. Press Enter to accept or type the correct IP"
+      register: ip_override
+
+    - name: Set server IP
+      set_fact:
+        server_ip: "{{ ip_override.user_input if ip_override.user_input != '' else auto_ip }}"
+
     - name: Pull latest from GitHub
       git:
         repo: https://github.com/cristianzubcu/homelab.git
@@ -35,6 +67,7 @@
       template:
         src: "{{ repo_dir }}/wireguard/wg0.conf.j2"
         dest: "{{ docker_dir }}/wireguard/config/wg_confs/wg0.conf"
+        mode: "0600"
 
     - name: Copy prometheus config
       copy:
@@ -42,11 +75,10 @@
         dest: "{{ docker_dir }}/prometheus/config/prometheus.yml"
         remote_src: true
 
-    - name: Copy homepage services config
-      copy:
-        src: "{{ repo_dir }}/homepage/services.yaml"
+    - name: Deploy homepage services config
+      template:
+        src: "{{ repo_dir }}/homepage/services.yaml.j2"
         dest: "{{ docker_dir }}/homepage/config/services.yaml"
-        remote_src: true
 
     - name: Restart containers
       command: docker compose up -d

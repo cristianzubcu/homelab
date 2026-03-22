@@ -1,0 +1,52 @@
+- name: Restore configs from backup
+  hosts: mediaserver
+  vars_prompt:
+    - name: docker_dir
+      prompt: "Where is the homelab deployed?"
+      default: "~/homelab-data"
+      private: false
+    - name: backup_date
+      prompt: "Enter backup date to restore (YYYY-MM-DD)"
+      private: false
+  tasks:
+    - name: Resolve docker_dir path
+      set_fact:
+        docker_dir: "{{ docker_dir | expanduser }}"
+
+    - name: Set backup directory
+      set_fact:
+        backup_dir: "{{ docker_dir }}/backups/{{ backup_date }}"
+
+    - name: Check backup exists
+      stat:
+        path: "{{ backup_dir }}"
+      register: backup_check
+
+    - name: Fail if backup not found
+      fail:
+        msg: "Backup not found at {{ backup_dir }}"
+      when: not backup_check.stat.exists
+
+    - name: Stop containers
+      command: docker compose down
+      args:
+        chdir: "{{ docker_dir }}"
+
+    - name: Restore service configs
+      copy:
+        src: "{{ backup_dir }}/{{ item.name }}/"
+        dest: "{{ item.dest }}"
+        remote_src: true
+      loop:
+        - { name: "radarr", dest: "{{ docker_dir }}/radarr/config/" }
+        - { name: "sonarr", dest: "{{ docker_dir }}/sonarr/config/" }
+        - { name: "jellyfin", dest: "{{ docker_dir }}/jellyfin/config/" }
+        - { name: "prowlarr", dest: "{{ docker_dir }}/prowlarr/data/" }
+        - { name: "homepage", dest: "{{ docker_dir }}/homepage/config/" }
+        - { name: "qbittorrent", dest: "{{ docker_dir }}/qbittorrent/appdata/" }
+        - { name: "bazarr", dest: "{{ docker_dir }}/bazarr/config/" }
+
+    - name: Start containers
+      command: docker compose up -d
+      args:
+        chdir: "{{ docker_dir }}"

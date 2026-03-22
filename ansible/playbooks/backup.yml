@@ -2,10 +2,14 @@
   hosts: mediaserver
   vars_prompt:
     - name: docker_dir
-      prompt: "Enter your homelab root directory (where docker-compose.yml lives)"
-      default: "/mnt/c/Dockers"
+      prompt: "Where is the homelab deployed?"
+      default: "~/homelab-data"
       private: false
   tasks:
+    - name: Resolve docker_dir path
+      set_fact:
+        docker_dir: "{{ docker_dir | expanduser }}"
+
     - name: Set backup directory
       set_fact:
         backup_dir: "{{ docker_dir }}/backups/{{ ansible_date_time.date }}"

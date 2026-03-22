@@ -1,76 +1,100 @@
 # Homelab
 
-My media server setup running on Docker with Ansible automation. Everything routes torrent traffic through a Mullvad VPN, streams via Jellyfin, and is accessible remotely through Tailscale.
+Automated media server stack with VPN-protected downloads, streaming, monitoring, and remote access.
 
-## Stack
+qBittorrent downloads through a Mullvad WireGuard tunnel. Radarr and Sonarr handle media management. Jellyfin streams everything. Prometheus and Grafana monitor the infrastructure. Tailscale provides optional remote access. Deploys with a single command.
 
-- **Radarr / Sonarr / Prowlarr / Bazarr** — media management
-- **qBittorrent** — torrents (routed through WireGuard VPN)
-- **Jellyfin** — media streaming
-- **Prometheus / Grafana / cAdvisor / Node Exporter** — monitoring
-- **Portainer** — Docker management
-- **Homepage** — dashboard for all services
-- **Tailscale** — remote access
-- **FlareSolverr** — Cloudflare bypass for indexers
+## Contents
+- [Install](#install)
+- [Setup](#setup)
+- [Service Configuration](#service-configuration)
+- [Usage](#usage)
+- [Troubleshooting](#troubleshooting)
 
-## How it works
+## Install
 
-Prowlarr finds releases → Radarr/Sonarr grab them → qBittorrent downloads through VPN → files land in `_incoming/` → Radarr/Sonarr import and rename → Jellyfin picks them up.
+If you are not using Linux or WSL2, do NOT proceed.
 
-## Requirements
+### Dependencies
 
-- Linux or WSL2
-- Docker + Docker Compose
-- Ansible
-- Mullvad VPN subscription
-- Tailscale account
+Install Docker
+```
+sudo apt update
+sudo apt install docker.io docker-compose-v2 -y
+sudo usermod -aG docker $USER
+```
+Log out and log back in for group changes to take effect.
+
+Install Ansible
+```
+sudo apt install ansible -y
+```
+
+### Credentials
+
+You will need:
+- A **Mullvad** WireGuard private key. Generate a Linux config at https://mullvad.net/en/account/wireguard-config and copy the `PrivateKey` value.
+- (Optional) A **Tailscale** auth key for remote access. Generate one at https://login.tailscale.com/admin/settings/keys. Make it reusable.
 
 ## Setup
 
-Clone the repo and run:
-
 ```
-ansible-playbook -i ansible/inventory.yml ansible/playbooks/setup.yml
+git clone https://github.com/cristianzubcu/homelab.git
+cd homelab
+./setup.sh
 ```
 
-It'll ask for your paths and credentials. After containers are up, configure each service through its web UI — the playbook handles infrastructure, not app-level settings.
+The script checks for Docker and Ansible, then runs the playbook. It will ask for:
+- Where to deploy (default: `~/homelab-data`)
+- Your Mullvad WireGuard private key
+- Whether to install Tailscale
+- Your server IP (auto-detected, confirm or override)
 
-### Service configuration
-
-**qBittorrent** (`:8080`) — create categories `radarr` → `/data/movies/_incoming` and `sonarr` → `/data/tvshows/_incoming`. Check `docker logs qbittorrent` for the initial password.
-
-**Radarr** (`:7878`) — root folder `/data/movies`, download client qBittorrent at host `wireguard:8080`, category `radarr`.
-
-**Sonarr** (`:8989`) — root folder `/data/tvshows`, download client qBittorrent at host `wireguard:8080`, category `sonarr`.
-
-**Prowlarr** (`:9696`) — add indexers, connect FlareSolverr at `http://flaresolverr:8191`, add Radarr and Sonarr under Apps.
-
-**Jellyfin** (`:8096`) — add libraries: Movies → `/data/movies`, TV Shows → `/data/tvshows`.
-
-**Bazarr** (`:6767`) — connect to Radarr and Sonarr using their API keys.
-
-**Grafana** (`:3001`) — login `admin/admin`, add Prometheus datasource at `http://prometheus:9090`, import dashboards `1860` and `193`.
-
-**Tailscale** — approve the subnet route in the admin console.
-
-### Verify VPN
-
+Once done, all containers are running. Verify the VPN:
 ```
 docker exec qbittorrent curl -s https://am.i.mullvad.net/connected
 ```
 
-## Other playbooks
+## Service Configuration
 
+After deployment, configure each service through its web UI at `http://YOUR_IP:PORT`.
+
+**qBittorrent** (`:8080`) — The temporary password is shown at the end of setup. Create two categories: `radarr` with path `/data/movies/_incoming` and `sonarr` with path `/data/tvshows/_incoming`.
+
+**Prowlarr** (`:9696`) — Add indexers. Add FlareSolverr proxy at `http://flaresolverr:8191`. Connect Radarr and Sonarr under Settings → Apps.
+
+**Radarr** (`:7878`) — Root folder: `/data/movies`. Download client: qBittorrent at host `wireguard`, port `8080`, category `radarr`.
+
+**Sonarr** (`:8989`) — Root folder: `/data/tvshows`. Download client: qBittorrent at host `wireguard`, port `8080`, category `sonarr`.
+
+**Jellyfin** (`:8096`) — Add libraries: Movies → `/data/movies`, TV Shows → `/data/tvshows`.
+
+**Bazarr** (`:6767`) — Connect to Radarr and Sonarr using their API keys (Settings → General in each app).
+
+**Grafana** (`:3001`) — Login `admin` / `admin`. Add Prometheus data source at `http://prometheus:9090`. Import dashboards `1860` (system) and `193` (containers).
+
+**Tailscale** — If installed, approve the subnet route in the [admin console](https://login.tailscale.com/admin/machines).
+
+## Usage
+
+Deploy changes:
 ```
-# deploy after making changes
 ansible-playbook -i ansible/inventory.yml ansible/playbooks/deploy.yml
+```
 
-# backup configs
+Backup configs:
+```
 ansible-playbook -i ansible/inventory.yml ansible/playbooks/backup.yml
 ```
 
-## Notes
+Restore from backup:
+```
+ansible-playbook -i ansible/inventory.yml ansible/playbooks/restore.yml
+```
 
-- qBittorrent shares WireGuard's network, so Radarr/Sonarr reach it via hostname `wireguard`, not `qbittorrent`
-- If Docker image pulls fail with credential errors: `echo '{}' > ~/.docker/config.json`
-- WSL/NTFS can be weird with nested directory creation — the Ansible playbooks handle this
+## Troubleshooting
+
+- **Docker pull fails with credential error**: `echo '{}' > ~/.docker/config.json`
+- **qBittorrent unreachable from Radarr/Sonarr**: Use `wireguard` as hostname, not `qbittorrent`.
+- **Jellyfin not showing new media**: Dashboard → Scheduled Tasks → Scan All Libraries.
+- **WSL mkdir errors**: Known NTFS issue. The playbooks handle this.
