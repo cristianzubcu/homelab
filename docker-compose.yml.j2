@@ -146,6 +146,7 @@ services:
       - {{ docker_dir }}/homepage/config:/app/config
     restart: unless-stopped
 
+{% if install_tailscale == "yes" %}
   tailscale:
     image: tailscale/tailscale:latest
     container_name: tailscale
@@ -161,6 +162,7 @@ services:
       - NET_ADMIN
       - SYS_MODULE
     restart: unless-stopped
+{% endif %}
 
   prometheus:
     image: prom/prometheus:latest

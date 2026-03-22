@@ -1,34 +1,60 @@
 - name: Homelab setup
   hosts: mediaserver
-  become: true
   vars_prompt:
     - name: docker_dir
-      prompt: "Enter your homelab root directory (where docker-compose.yml lives)"
-      default: "/mnt/c/Dockers"
+      prompt: "Where should the homelab be deployed?"
+      default: "~/homelab-data"
       private: false
-    - name: tailscale_authkey
-      prompt: "Enter your Tailscale auth key"
-      private: true
     - name: mullvad_private_key
       prompt: "Enter your Mullvad WireGuard private key"
       private: true
+    - name: install_tailscale
+      prompt: "Install Tailscale for remote access? (yes/no)"
+      default: "no"
+      private: false
+    - name: tailscale_authkey
+      prompt: "Enter your Tailscale auth key (press Enter to skip)"
+      private: true
   tasks:
+    - name: Resolve docker_dir path
+      set_fact:
+        docker_dir: "{{ docker_dir | expanduser }}"
+
+    - name: Set repo directory
+      shell: "cd {{ playbook_dir }} && git rev-parse --show-toplevel"
+      register: git_root
+      changed_when: false
+
+    - name: Set repo dir fact
+      set_fact:
+        repo_dir: "{{ git_root.stdout }}"
+
     - name: Detect server IP
-      shell: "hostname -I | awk '{print $1}'"
+      shell: |
+        powershell.exe -c "(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { \$_.InterfaceAlias -match 'Ethernet|Wi-Fi' -and \$_.PrefixOrigin -eq 'Dhcp' }).IPAddress" 2>/dev/null | tr -d '\r' | head -1
       register: detected_ip
       changed_when: false
+      ignore_errors: true
+
+    - name: Fallback IP detection for Linux
+      shell: "ip route get 8.8.8.8 | grep -oP 'src \\K[0-9.]+'"
+      register: fallback_ip
+      changed_when: false
+      when: detected_ip.stdout == ""
+      ignore_errors: true
+
+    - name: Set detected IP
+      set_fact:
+        auto_ip: "{{ detected_ip.stdout if detected_ip.stdout != '' else (fallback_ip.stdout if fallback_ip is defined and fallback_ip.stdout is defined and fallback_ip.stdout != '' else 'localhost') }}"
+
+    - name: Confirm server IP
+      pause:
+        prompt: "Detected server IP: {{ auto_ip }}. Press Enter to accept or type the correct IP"
+      register: ip_override
 
     - name: Set server IP
       set_fact:
-        server_ip: "{{ detected_ip.stdout }}"
-
-    - name: Show detected IP
-      debug:
-        msg: "Using server IP: {{ server_ip }}"
-
-    - name: Set repo directory
-      set_fact:
-        repo_dir: "{{ playbook_dir }}/../.."
+        server_ip: "{{ ip_override.user_input if ip_override.user_input != '' else auto_ip }}"
 
     - name: Create parent directories
       shell: "mkdir -p {{ item }}"
@@ -40,7 +66,7 @@
         - "{{ docker_dir }}/media/movies"
         - "{{ docker_dir }}/media/tvshows"
 
-    - name: Create child directories
+    - name: Create service directories
       shell: "mkdir -p {{ item }}"
       register: mkdir_result
       failed_when:
@@ -62,7 +88,17 @@
         - "{{ docker_dir }}/grafana/data"
         - "{{ docker_dir }}/homepage/config"
         - "{{ docker_dir }}/portainer/data"
-        - "{{ docker_dir }}/tailscale/state"
+
+    - name: Create Tailscale directory
+      shell: "mkdir -p {{ docker_dir }}/tailscale/state"
+      register: mkdir_result
+      failed_when:
+        - mkdir_result.rc != 0
+        - "'File exists' not in mkdir_result.stderr"
+      when: install_tailscale == "yes"
+
+    - name: Remove prometheus.yml if it is a directory
+      shell: "test -d {{ docker_dir }}/prometheus/config/prometheus.yml && rm -rf {{ docker_dir }}/prometheus/config/prometheus.yml || true"
 
     - name: Deploy docker-compose file
       template:
@@ -73,6 +109,7 @@
       template:
         src: "{{ repo_dir }}/wireguard/wg0.conf.j2"
         dest: "{{ docker_dir }}/wireguard/config/wg_confs/wg0.conf"
+        mode: "0600"
 
     - name: Copy prometheus config
       copy:
@@ -88,3 +125,26 @@
       command: docker compose up -d
       args:
         chdir: "{{ docker_dir }}"
+
+    - name: Wait for qBittorrent to start
+      pause:
+        seconds: 10
+
+    - name: Get qBittorrent temporary password
+      shell: "docker logs qbittorrent 2>&1 | grep 'temporary password' | awk '{print $NF}'"
+      register: qbit_password
+      ignore_errors: true
+
+    - name: Show summary
+      debug:
+        msg: |
+          Homelab is running! Open these in your browser:
+            Homepage:     http://{{ server_ip }}:3000
+            Jellyfin:     http://{{ server_ip }}:8096
+            Radarr:       http://{{ server_ip }}:7878
+            Sonarr:       http://{{ server_ip }}:8989
+            qBittorrent:  http://{{ server_ip }}:8080  (password: {{ qbit_password.stdout | default('check docker logs qbittorrent') }})
+            Prowlarr:     http://{{ server_ip }}:9696
+            Bazarr:       http://{{ server_ip }}:6767
+            Grafana:      http://{{ server_ip }}:3001
+            Portainer:    https://{{ server_ip }}:9443

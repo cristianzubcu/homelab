@@ -1,10 +1,15 @@
-# Private info
-wireguard/wg0.conf
+# Generated files
+docker-compose.yml
+
+# Container data
+*/config/
+*/data/
+*/appdata/
+media/
+backups/
+grafana/
+portainer/
+
+# Secrets
 *.key
 *.pem
-
-# Private data
-*/data/
-*/config/
-grafana/data/
-prometheus/data/
