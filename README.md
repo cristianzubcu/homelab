@@ -2,7 +2,7 @@
 
 Homelab setup using Docker Compose and Ansible.
 
-It includes Jellyfin, Radarr, Sonarr, Bazarr, qBittorrent, Prowlarr, Prometheus, Grafana, Portainer, and WireGuard. Tailscale can also be enabled for private remote access.
+It includes Jellyfin, qBittorrent, Prometheus, Grafana, Portainer, and WireGuard. Tailscale can also be enabled for private remote access.
 
 ## Contents
 - [Install](#install)
