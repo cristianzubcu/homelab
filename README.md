@@ -45,6 +45,8 @@ You will need:
 
 ## Setup
 
+### Step 1 — Initial deployment
+
 ```
 git clone https://github.com/cristianzubcu/homelab.git
 cd homelab
@@ -62,9 +64,11 @@ Once done, all containers are running. Verify the VPN:
 docker exec wireguard curl -s https://am.i.mullvad.net/connected
 ```
 
-## Service Configuration
+> **Homelab API** starts alongside the other services but won't be fully functional yet — the API keys don't exist until the services are configured. Complete Step 2 and Step 3 to activate it.
 
-After deployment, configure each service through its web UI at `http://YOUR_IP:PORT`.
+### Step 2 — Configure services
+
+Configure each service through its web UI at `http://YOUR_IP:PORT`.
 
 **qBittorrent** (`:8080`) — The temporary password is shown at the end of setup. Create two categories: `radarr` with path `/data/movies/_incoming` and `sonarr` with path `/data/tvshows/_incoming`.
 
@@ -81,6 +85,25 @@ After deployment, configure each service through its web UI at `http://YOUR_IP:P
 **Grafana** (`:3001`) — Login `admin` / `admin`. Add Prometheus data source at `http://prometheus:9090`. Import dashboards `1860` (system) and `193` (containers).
 
 **Tailscale** — If installed, approve the subnet route in the [admin console](https://login.tailscale.com/admin/machines).
+
+### Step 3 — Activate Homelab API
+
+Collect the API keys from each service:
+
+| Service | Where to find the API key |
+|---|---|
+| Jellyfin | Dashboard → API Keys → + |
+| Radarr | Settings → General → API Key |
+| Sonarr | Settings → General → API Key |
+| qBittorrent | Settings → Web UI → username & password |
+
+Then run the deploy playbook, which will prompt for these keys and redeploy:
+
+```
+ansible-playbook -i ansible/inventory.yml ansible/playbooks/deploy.yml
+```
+
+The Homelab API dashboard will be available at `http://YOUR_IP:5000`.
 
 ## Usage
 
