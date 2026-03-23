@@ -61,17 +61,6 @@
         dest: "{{ repo_dir }}"
         version: main
 
-    - name: Create Caddy directories
-      ansible.builtin.command: "mkdir -p {{ item }}"
-      register: mkdir_result
-      changed_when: mkdir_result.rc == 0
-      failed_when:
-        - mkdir_result.rc != 0
-        - "'File exists' not in mkdir_result.stderr"
-      loop:
-        - "{{ docker_dir }}/caddy/config"
-        - "{{ docker_dir }}/caddy/data"
-
     - name: Deploy docker-compose file
       ansible.builtin.template:
         src: "{{ repo_dir }}/docker-compose.yml.j2"
@@ -90,12 +79,6 @@
         dest: "{{ docker_dir }}/prometheus/config/prometheus.yml"
         mode: "0644"
         remote_src: true
-
-    - name: Deploy Caddy config
-      ansible.builtin.template:
-        src: "{{ repo_dir }}/caddy/Caddyfile.j2"
-        dest: "{{ docker_dir }}/caddy/Caddyfile"
-        mode: "0644"
 
     - name: Deploy homepage services config
       ansible.builtin.template:

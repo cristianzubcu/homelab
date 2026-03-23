@@ -1,41 +1,41 @@
 - Media:
     - Jellyfin:
         icon: jellyfin.png
-        href: 'javascript:window.open(''http://'' + window.location.hostname + '':8096'', ''_blank'', ''noopener,noreferrer'')'
+        href: http://{{ auto_ip }}:8096
         description: Media server
     - Radarr:
         icon: radarr.png
-        href: 'javascript:window.open(''http://'' + window.location.hostname + '':7878'', ''_blank'', ''noopener,noreferrer'')'
+        href: http://{{ auto_ip }}:7878
         description: Movies
     - Sonarr:
         icon: sonarr.png
-        href: 'javascript:window.open(''http://'' + window.location.hostname + '':8989'', ''_blank'', ''noopener,noreferrer'')'
+        href: http://{{ auto_ip }}:8989
         description: TV Shows
     - Bazarr:
         icon: bazarr.png
-        href: 'javascript:window.open(''http://'' + window.location.hostname + '':6767'', ''_blank'', ''noopener,noreferrer'')'
+        href: http://{{ auto_ip }}:6767
         description: Subtitles
 
 - Downloads:
     - qBittorrent:
         icon: qbittorrent.png
-        href: 'javascript:window.open(''http://'' + window.location.hostname + '':8080'', ''_blank'', ''noopener,noreferrer'')'
+        href: http://{{ auto_ip }}:8080
         description: Torrent client
     - Prowlarr:
         icon: prowlarr.png
-        href: 'javascript:window.open(''http://'' + window.location.hostname + '':9696'', ''_blank'', ''noopener,noreferrer'')'
+        href: http://{{ auto_ip }}:9696
         description: Indexer manager
 
 - Management:
     - Homepage:
         icon: homepage.png
-        href: /home/
+        href: http://{{ auto_ip }}:3000
         description: Main landing page
     - Portainer:
         icon: portainer.png
-        href: 'javascript:window.open(''https://'' + window.location.hostname + '':9443'', ''_blank'', ''noopener,noreferrer'')'
+        href: https://{{ auto_ip }}:9443
         description: Docker management
     - Grafana:
         icon: grafana.png
-        href: 'javascript:window.open(''http://'' + window.location.hostname + '':3001'', ''_blank'', ''noopener,noreferrer'')'
+        href: http://{{ auto_ip }}:3001
         description: Monitoring

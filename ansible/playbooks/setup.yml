@@ -93,8 +93,6 @@
         - "{{ docker_dir }}/prometheus/config"
         - "{{ docker_dir }}/prometheus/data"
         - "{{ docker_dir }}/grafana/data"
-        - "{{ docker_dir }}/caddy/config"
-        - "{{ docker_dir }}/caddy/data"
         - "{{ docker_dir }}/homepage/config"
         - "{{ docker_dir }}/portainer/data"
 
@@ -137,12 +135,6 @@
         dest: "{{ docker_dir }}/prometheus/config/prometheus.yml"
         mode: "0644"
 
-    - name: Deploy Caddy config
-      ansible.builtin.template:
-        src: "{{ repo_dir }}/caddy/Caddyfile.j2"
-        dest: "{{ docker_dir }}/caddy/Caddyfile"
-        mode: "0644"
-
     - name: Deploy homepage services config
       ansible.builtin.template:
         src: "{{ repo_dir }}/homepage/services.yaml.j2"
@@ -170,14 +162,13 @@
       ansible.builtin.debug:
         msg: |
           Homelab is running! Open these in your browser:
-            Homepage:     http://{{ auto_ip }}/home
-            Jellyfin:     http://CURRENT_HOST:8096
-            Radarr:       http://CURRENT_HOST:7878
-            Sonarr:       http://CURRENT_HOST:8989
-            qBittorrent:  http://CURRENT_HOST:8080
+            Homepage:     http://{{ auto_ip }}:3000
+            Jellyfin:     http://{{ auto_ip }}:8096
+            Radarr:       http://{{ auto_ip }}:7878
+            Sonarr:       http://{{ auto_ip }}:8989
+            qBittorrent:  http://{{ auto_ip }}:8080
             password:     {{ qbit_password.stdout | default('check docker logs qbittorrent') }}
-            Prowlarr:     http://CURRENT_HOST:9696
-            Bazarr:       http://CURRENT_HOST:6767
-            Grafana:      http://CURRENT_HOST:3001
-            Portainer:    https://CURRENT_HOST:9443
-          Homepage links use the current host automatically.
+            Prowlarr:     http://{{ auto_ip }}:9696
+            Bazarr:       http://{{ auto_ip }}:6767
+            Grafana:      http://{{ auto_ip }}:3001
+            Portainer:    https://{{ auto_ip }}:9443
