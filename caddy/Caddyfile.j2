@@ -1,0 +1,9 @@
+:80 {
+    redir /home /home/ 308
+
+    handle_path /home/* {
+        reverse_proxy homepage:3000
+    }
+
+    respond "Not Found" 404
+}

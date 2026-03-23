@@ -107,6 +107,8 @@
         - "{{ docker_dir }}/prometheus/config"
         - "{{ docker_dir }}/prometheus/data"
         - "{{ docker_dir }}/grafana/data"
+        - "{{ docker_dir }}/caddy/config"
+        - "{{ docker_dir }}/caddy/data"
         - "{{ docker_dir }}/homepage/config"
         - "{{ docker_dir }}/portainer/data"
 
@@ -149,6 +151,12 @@
         dest: "{{ docker_dir }}/prometheus/config/prometheus.yml"
         mode: "0644"
 
+    - name: Deploy Caddy config
+      ansible.builtin.template:
+        src: "{{ repo_dir }}/caddy/Caddyfile.j2"
+        dest: "{{ docker_dir }}/caddy/Caddyfile"
+        mode: "0644"
+
     - name: Deploy homepage services config
       ansible.builtin.template:
         src: "{{ repo_dir }}/homepage/services.yaml.j2"
@@ -176,7 +184,7 @@
       ansible.builtin.debug:
         msg: |
           Homelab is running! Open these in your browser:
-            Homepage:     http://{{ server_ip }}:3000
+            Homepage:     http://{{ server_ip }}/home
             Jellyfin:     http://{{ server_ip }}:8096
             Radarr:       http://{{ server_ip }}:7878
             Sonarr:       http://{{ server_ip }}:8989
