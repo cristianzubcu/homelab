@@ -210,26 +210,3 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     restart: unless-stopped
 
-  homelab-api:
-    image: ghcr.io/cristianzubcu/homelab-api:latest
-    container_name: homelab-api
-    environment:
-      - JELLYFIN_URL=http://jellyfin:8096
-      - JELLYFIN_API_KEY={{ jellyfin_api_key }}
-      - RADARR_URL=http://radarr:7878
-      - RADARR_API_KEY={{ radarr_api_key }}
-      - SONARR_URL=http://sonarr:8989
-      - SONARR_API_KEY={{ sonarr_api_key }}
-      - QBIT_URL=http://wireguard:8080
-      - QBIT_USER={{ qbit_user }}
-      - QBIT_PASS={{ qbit_pass }}
-      - PROWLARR_URL=http://prowlarr:9696
-      - BAZARR_URL=http://bazarr:6767
-      - GRAFANA_URL=http://grafana:3000
-      - PROMETHEUS_URL=http://prometheus:9090
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - {{ docker_dir }}/media:/data:ro
-    ports:
-      - 5000:5000
-    restart: unless-stopped

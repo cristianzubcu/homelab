@@ -16,12 +16,6 @@
     - name: tailscale_authkey
       prompt: "Enter your Tailscale auth key (press Enter to skip)"
       private: true
-  vars:
-    jellyfin_api_key: ""
-    radarr_api_key: ""
-    sonarr_api_key: ""
-    qbit_user: "admin"
-    qbit_pass: ""
   tasks:
     - name: Resolve docker_dir path
       ansible.builtin.set_fact:
