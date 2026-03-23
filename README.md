@@ -1,6 +1,10 @@
 # Homelab
 
-Homelab stack.
+Homelab setup using Docker-compose and various services commonly found on https://docs.linuxserver.io/images-by-category/.
+
+WireGuard (with Mullvad VPN) is used for VPN. In my case using Mullvad (Mullvad is a paid service). Am planning to add support for other VPN services as well.
+
+Tailscale can be installed so that the Homelab can be reached from any devices safely (Tailscale is a free service for home use).
 
 ## Contents
 - [Install](#install)
@@ -11,11 +15,17 @@ Homelab stack.
 
 ## Install
 
-THis works best on WSL2 and Windows.
+This setup is intended to be installed on WSL2.
 
 ### Dependencies
 
-Install Docker
+**Windows users:** Install WSL2 first. Open PowerShell as Administrator and run:
+```
+wsl --install
+```
+Restart your computer. On first boot, WSL will ask you to create a username and password. All commands below must be run inside the WSL terminal.
+
+**Install Docker**
 ```
 sudo apt update
 sudo apt install docker.io docker-compose-v2 -y
@@ -23,11 +33,10 @@ sudo usermod -aG docker $USER
 ```
 Log out and log back in for group changes to take effect.
 
-Install Ansible
+**Install Ansible**
 ```
 sudo apt install ansible -y
 ```
-
 ### Credentials
 
 You will need:
@@ -50,7 +59,7 @@ The script checks for Docker and Ansible, then runs the playbook. It will ask fo
 
 Once done, all containers are running. Verify the VPN:
 ```
-docker exec qbittorrent curl -s https://am.i.mullvad.net/connected
+docker exec wireguard curl -s https://am.i.mullvad.net/connected
 ```
 
 ## Service Configuration
