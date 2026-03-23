@@ -61,20 +61,6 @@
           and fallback_ip.stdout != ''
           else 'localhost') }}
 
-    - name: Confirm server IP
-      ansible.builtin.pause:
-        prompt: >-
-          Detected server IP: {{ auto_ip }}.
-          Press Enter to accept or type the correct IP
-      register: ip_override
-
-    - name: Set server IP
-      ansible.builtin.set_fact:
-        server_ip: >-
-          {{ ip_override.user_input
-          if ip_override.user_input != ''
-          else auto_ip }}
-
     - name: Create parent directories
       ansible.builtin.command: "mkdir -p {{ item }}"
       register: mkdir_result
@@ -184,13 +170,14 @@
       ansible.builtin.debug:
         msg: |
           Homelab is running! Open these in your browser:
-            Homepage:     http://{{ server_ip }}/home
-            Jellyfin:     http://{{ server_ip }}:8096
-            Radarr:       http://{{ server_ip }}:7878
-            Sonarr:       http://{{ server_ip }}:8989
-            qBittorrent:  http://{{ server_ip }}:8080
+            Homepage:     http://{{ auto_ip }}/home
+            Jellyfin:     http://CURRENT_HOST:8096
+            Radarr:       http://CURRENT_HOST:7878
+            Sonarr:       http://CURRENT_HOST:8989
+            qBittorrent:  http://CURRENT_HOST:8080
             password:     {{ qbit_password.stdout | default('check docker logs qbittorrent') }}
-            Prowlarr:     http://{{ server_ip }}:9696
-            Bazarr:       http://{{ server_ip }}:6767
-            Grafana:      http://{{ server_ip }}:3001
-            Portainer:    https://{{ server_ip }}:9443
+            Prowlarr:     http://CURRENT_HOST:9696
+            Bazarr:       http://CURRENT_HOST:6767
+            Grafana:      http://CURRENT_HOST:3001
+            Portainer:    https://CURRENT_HOST:9443
+          Homepage links use the current host automatically.

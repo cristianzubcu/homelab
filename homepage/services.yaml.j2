@@ -1,41 +1,41 @@
 - Media:
     - Jellyfin:
         icon: jellyfin.png
-        href: http://{{ server_ip }}:8096
+        href: 'javascript:window.open(''http://'' + window.location.hostname + '':8096'', ''_blank'', ''noopener,noreferrer'')'
         description: Media server
     - Radarr:
         icon: radarr.png
-        href: http://{{ server_ip }}:7878
+        href: 'javascript:window.open(''http://'' + window.location.hostname + '':7878'', ''_blank'', ''noopener,noreferrer'')'
         description: Movies
     - Sonarr:
         icon: sonarr.png
-        href: http://{{ server_ip }}:8989
+        href: 'javascript:window.open(''http://'' + window.location.hostname + '':8989'', ''_blank'', ''noopener,noreferrer'')'
         description: TV Shows
     - Bazarr:
         icon: bazarr.png
-        href: http://{{ server_ip }}:6767
+        href: 'javascript:window.open(''http://'' + window.location.hostname + '':6767'', ''_blank'', ''noopener,noreferrer'')'
         description: Subtitles
 
 - Downloads:
     - qBittorrent:
         icon: qbittorrent.png
-        href: http://{{ server_ip }}:8080
+        href: 'javascript:window.open(''http://'' + window.location.hostname + '':8080'', ''_blank'', ''noopener,noreferrer'')'
         description: Torrent client
     - Prowlarr:
         icon: prowlarr.png
-        href: http://{{ server_ip }}:9696
+        href: 'javascript:window.open(''http://'' + window.location.hostname + '':9696'', ''_blank'', ''noopener,noreferrer'')'
         description: Indexer manager
 
 - Management:
     - Homepage:
         icon: homepage.png
-        href: http://{{ server_ip }}/home
+        href: /home/
         description: Main landing page
     - Portainer:
         icon: portainer.png
-        href: https://{{ server_ip }}:9443
+        href: 'javascript:window.open(''https://'' + window.location.hostname + '':9443'', ''_blank'', ''noopener,noreferrer'')'
         description: Docker management
     - Grafana:
         icon: grafana.png
-        href: http://{{ server_ip }}:3001
+        href: 'javascript:window.open(''http://'' + window.location.hostname + '':3001'', ''_blank'', ''noopener,noreferrer'')'
         description: Monitoring

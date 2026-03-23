@@ -64,7 +64,7 @@ docker exec wireguard curl -s https://am.i.mullvad.net/connected
 
 ## Service Configuration
 
-After deployment, configure each service through its web UI. Homepage is available at `http://YOUR_IP/home`, and the other services stay on their direct ports.
+After deployment, configure each service through its web UI. Homepage is available at `http://YOUR_IP/home`, and the Homepage cards derive the current host automatically when they open the other services on their direct ports.
 
 **qBittorrent** (`:8080`) — The temporary password is shown at the end of setup. Create two categories: `radarr` with path `/data/movies/_incoming` and `sonarr` with path `/data/tvshows/_incoming`.
 

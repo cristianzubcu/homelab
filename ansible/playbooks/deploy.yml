@@ -55,20 +55,6 @@
           and fallback_ip.stdout != ''
           else 'localhost') }}
 
-    - name: Confirm server IP
-      ansible.builtin.pause:
-        prompt: >-
-          Detected server IP: {{ auto_ip }}.
-          Press Enter to accept or type the correct IP
-      register: ip_override
-
-    - name: Set server IP
-      ansible.builtin.set_fact:
-        server_ip: >-
-          {{ ip_override.user_input
-          if ip_override.user_input != ''
-          else auto_ip }}
-
     - name: Pull latest from GitHub
       ansible.builtin.git:
         repo: https://github.com/cristianzubcu/homelab.git
