@@ -20,6 +20,30 @@
     - name: tailscale_authkey
       prompt: "Enter your Tailscale auth key (press Enter to skip)"
       private: true
+    - name: jellyfin_api_key
+      prompt: "Jellyfin API key (skip if not installing Homelab API)"
+      default: ""
+      private: true
+    - name: radarr_api_key
+      prompt: "Radarr API key (skip if not installing Homelab API)"
+      default: ""
+      private: true
+    - name: sonarr_api_key
+      prompt: "Sonarr API key (skip if not installing Homelab API)"
+      default: ""
+      private: true
+    - name: qbit_user
+      prompt: "qBittorrent username (skip if not installing Homelab API)"
+      default: "admin"
+      private: false
+    - name: qbit_pass
+      prompt: "qBittorrent password (skip if not installing Homelab API)"
+      default: ""
+      private: true
+    - name: install_homelab_api
+      prompt: "Add Homelab API to homepage dashboard? (yes/no)"
+      default: "no"
+      private: false
   tasks:
     - name: Resolve paths
       ansible.builtin.set_fact:
