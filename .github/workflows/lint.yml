@@ -13,7 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install ansible-lint
+        run: pip install ansible-lint==24.10.0 ansible-core==2.17.7
+
       - name: Run ansible-lint
-        uses: ansible-actions/ansible-lint-action@v1.1.0
-        with:
-          target: "ansible/"
+        run: ansible-lint ansible/playbooks/*.yml ansible/inventory.yml
