@@ -1,15 +1,12 @@
 # Homelab
 
-Self-hosted homelab managed with Docker Compose and Ansible.
+Homelab setup using Docker Compose and Ansible.
 
-The stack is centered around reproducible deployment, private remote access, monitoring, backup and restore workflows, and a media-serving environment. It is designed to be easy to bring up on a single machine while still keeping the configuration in version control.
-
-WireGuard (with Mullvad in the current setup) is used for VPN routing. Tailscale can be enabled for private remote access from other devices.
+It includes Jellyfin, Radarr, Sonarr, Bazarr, qBittorrent, Prowlarr, Prometheus, Grafana, Portainer, and WireGuard. Tailscale can also be enabled for private remote access.
 
 ## Contents
 - [Install](#install)
 - [Setup](#setup)
-- [Architecture](#architecture)
 - [Service Configuration](#service-configuration)
 - [Usage](#usage)
 - [Troubleshooting](#troubleshooting)
@@ -68,42 +65,33 @@ Once done, all containers are running. Verify the VPN:
 docker exec wireguard curl -s https://am.i.mullvad.net/connected
 ```
 
-## Architecture
-
-This homelab is organized around a few core areas:
-
-- Media serving: Jellyfin
-- Media library management: Radarr, Sonarr, Bazarr
-- Transfer and indexing services: qBittorrent, Prowlarr, FlareSolverr
-- Operations and monitoring: Prometheus, Grafana, cAdvisor, node-exporter
-- Management and access: Portainer, WireGuard, optional Tailscale
-
-The emphasis of the repository is the deployment and operations side:
-
-- Docker Compose templates for the service stack
-- Ansible playbooks for setup, deploy, backup, and restore
-- Persistent service configuration stored outside the containers
-- Lightweight observability for both the host and the containers
-
 ## Service Configuration
 
 After deployment, configure each service through its web UI at `http://YOUR_IP:PORT`.
 
 **Homepage** (`:3000`) — Dashboard for the services in this stack.
 
-**Jellyfin** (`:8096`) — Media server for your own files. 
+**Jellyfin** (`:8096`) — Media server. Add libraries such as Movies -> `/data/movies` and TV Shows -> `/data/tvshows`.
 
 **Grafana** (`:3001`) — Login `admin` / `admin`. Add Prometheus data source at `http://prometheus:9090`. Import dashboards `1860` (system) and `193` (containers).
 
 **Portainer** (`:9443`) — Container management UI.
 
-**qBittorrent** (`:8080`) — BitTorrent client for torrent-based transfers. The temporary password is shown at the end of setup. Create categories as needed.
+**qBittorrent** (`:8080`) — The temporary password is shown at the end of setup.
+
+**Prowlarr** (`:9696`) — Add indexers. Add FlareSolverr proxy at `http://flaresolverr:8191`. Connect Radarr and Sonarr under Settings -> Apps.
+
+**Radarr** (`:7878`) — Root folder: `/data/movies`. Download client: qBittorrent at host `wireguard`, port `8080`.
+
+**Sonarr** (`:8989`) — Root folder: `/data/tvshows`. Download client: qBittorrent at host `wireguard`, port `8080`.
+
+**Bazarr** (`:6767`) — Connect to Radarr and Sonarr using their API keys.
 
 **Tailscale** — If installed, approve the subnet route in the [admin console](https://login.tailscale.com/admin/machines).
 
 ## Homelab API
 
-A separate management dashboard is available at [homelab-api](https://github.com/cristianzubcu/homelab-api). Deploy it after configuring your services if you want a custom API-backed management layer on top of the running stack.
+A separate management dashboard is available at [homelab-api](https://github.com/cristianzubcu/homelab-api). Deploy it after configuring your services if you want it.
 
 ## Usage
 
@@ -126,5 +114,5 @@ ansible-playbook -i ansible/inventory.yml ansible/playbooks/restore.yml
 
 - **Docker pull fails with credential error**: `echo '{}' > ~/.docker/config.json`
 - **qBittorrent unreachable from Radarr/Sonarr**: Use `wireguard` as hostname, not `qbittorrent`.
-- **Jellyfin not showing new media**: Dashboard → Scheduled Tasks → Scan All Libraries.
+- **Jellyfin not showing new media**: Dashboard -> Scheduled Tasks -> Scan All Libraries.
 - **WSL mkdir errors**: Known NTFS issue. The playbooks handle this.
