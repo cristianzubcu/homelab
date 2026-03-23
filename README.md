@@ -53,9 +53,15 @@ cd homelab
 ```
 
 The script checks for Docker and Ansible, then runs the playbook. It will ask for:
-- Where to deploy (default: `~/homelab-data`)
 - Your Mullvad WireGuard private key
-- Whether to install Tailscale
+
+Non-secret defaults now live in `ansible/group_vars/all.yml`. Adjust that file to change:
+
+- deployment path
+- timezone
+- whether Tailscale should be installed
+- optional hostname override for generated service URLs
+- Tailscale hostname and advertised routes
 
 Once done, all containers are running. Verify the VPN:
 ```

@@ -1,30 +1,21 @@
 ---
 - name: Deploy latest changes
   hosts: mediaserver
-  vars_prompt:
-    - name: docker_dir
-      prompt: "Where is the homelab deployed?"
-      default: "~/homelab-data"
-      private: false
-    - name: repo_dir
-      prompt: "Enter repo clone path"
-      default: "~/homelab"
-      private: false
-    - name: mullvad_private_key
-      prompt: "Enter your Mullvad WireGuard private key"
-      private: true
-    - name: install_tailscale
-      prompt: "Install Tailscale for remote access? (yes/no)"
-      default: "no"
-      private: false
-    - name: tailscale_authkey
-      prompt: "Enter your Tailscale auth key (press Enter to skip)"
-      private: true
   tasks:
-    - name: Resolve paths
+    - name: Resolve docker_dir path
       ansible.builtin.set_fact:
         docker_dir: "{{ docker_dir | expanduser }}"
-        repo_dir: "{{ repo_dir | expanduser }}"
+
+    - name: Set repo directory
+      ansible.builtin.command: git rev-parse --show-toplevel
+      args:
+        chdir: "{{ playbook_dir }}"
+      register: git_root
+      changed_when: false
+
+    - name: Set repo dir fact
+      ansible.builtin.set_fact:
+        repo_dir: "{{ git_root.stdout }}"
 
     - name: Detect server IP
       ansible.builtin.shell:
@@ -55,11 +46,37 @@
           and fallback_ip.stdout != ''
           else 'localhost') }}
 
-    - name: Pull latest from GitHub
-      ansible.builtin.git:
-        repo: https://github.com/cristianzubcu/homelab.git
-        dest: "{{ repo_dir }}"
-        version: main
+    - name: Set service host
+      ansible.builtin.set_fact:
+        service_host_effective: "{{ service_host | trim if (service_host | default('') | trim) != '' else auto_ip }}"
+
+    - name: Prompt for Mullvad private key if missing
+      ansible.builtin.pause:
+        prompt: "Enter your Mullvad WireGuard private key"
+        echo: false
+      register: mullvad_private_key_prompt
+      when: mullvad_private_key | default('') | trim == ''
+
+    - name: Set Mullvad private key from prompt
+      ansible.builtin.set_fact:
+        mullvad_private_key: "{{ mullvad_private_key_prompt.user_input }}"
+      when: mullvad_private_key | default('') | trim == ''
+
+    - name: Prompt for Tailscale auth key if needed
+      ansible.builtin.pause:
+        prompt: "Enter your Tailscale auth key"
+        echo: false
+      register: tailscale_authkey_prompt
+      when:
+        - install_tailscale | bool
+        - tailscale_authkey | default('') | trim == ''
+
+    - name: Set Tailscale auth key from prompt
+      ansible.builtin.set_fact:
+        tailscale_authkey: "{{ tailscale_authkey_prompt.user_input }}"
+      when:
+        - install_tailscale | bool
+        - tailscale_authkey | default('') | trim == ''
 
     - name: Deploy docker-compose file
       ansible.builtin.template:

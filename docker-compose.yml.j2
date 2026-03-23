@@ -8,7 +8,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Amsterdam
+      - TZ={{ homelab_timezone }}
     volumes:
       - {{ docker_dir }}/wireguard/config:/config
     ports:
@@ -26,7 +26,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Amsterdam
+      - TZ={{ homelab_timezone }}
       - WEBUI_PORT=8080
       - TORRENTING_PORT=6881
     volumes:
@@ -42,7 +42,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Amsterdam
+      - TZ={{ homelab_timezone }}
     volumes:
       - {{ docker_dir }}/prowlarr/data:/config
     ports:
@@ -55,7 +55,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Amsterdam
+      - TZ={{ homelab_timezone }}
     volumes:
       - {{ docker_dir }}/radarr/config:/config
       - {{ docker_dir }}/media:/data
@@ -72,7 +72,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Amsterdam
+      - TZ={{ homelab_timezone }}
     volumes:
       - {{ docker_dir }}/sonarr/config:/config
       - {{ docker_dir }}/media:/data
@@ -89,7 +89,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Amsterdam
+      - TZ={{ homelab_timezone }}
     volumes:
       - {{ docker_dir }}/jellyfin/config:/config
       - {{ docker_dir }}/media:/data
@@ -118,7 +118,7 @@ services:
     image: ghcr.io/flaresolverr/flaresolverr:latest
     container_name: flaresolverr
     environment:
-      - TZ=Europe/Amsterdam
+      - TZ={{ homelab_timezone }}
     ports:
       - 8191:8191
     restart: unless-stopped
@@ -127,7 +127,7 @@ services:
     image: portainer/portainer-ce:latest
     container_name: portainer
     environment:
-      - TZ=Europe/Amsterdam
+      - TZ={{ homelab_timezone }}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - {{ docker_dir }}/portainer/data:/data
@@ -146,15 +146,15 @@ services:
       - {{ docker_dir }}/homepage/config:/app/config
     restart: unless-stopped
 
-{% if install_tailscale == "yes" %}
+{% if install_tailscale | bool %}
   tailscale:
     image: tailscale/tailscale:latest
     container_name: tailscale
-    hostname: mediaserver
+    hostname: {{ tailscale_hostname }}
     environment:
       - TS_AUTHKEY={{ tailscale_authkey }}
       - TS_STATE_DIR=/var/lib/tailscale
-      - TS_EXTRA_ARGS=--advertise-routes=192.168.2.0/24 --accept-routes
+      - TS_EXTRA_ARGS=--advertise-routes={{ tailscale_advertise_routes }} --accept-routes
     volumes:
       - {{ docker_dir }}/tailscale/state:/var/lib/tailscale
       - /dev/net/tun:/dev/net/tun

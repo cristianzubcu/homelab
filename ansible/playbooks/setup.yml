@@ -1,21 +1,6 @@
 ---
 - name: Homelab setup
   hosts: mediaserver
-  vars_prompt:
-    - name: docker_dir
-      prompt: "Where should the homelab be deployed?"
-      default: "~/homelab-data"
-      private: false
-    - name: mullvad_private_key
-      prompt: "Enter your Mullvad WireGuard private key"
-      private: true
-    - name: install_tailscale
-      prompt: "Install Tailscale for remote access? (yes/no)"
-      default: "no"
-      private: false
-    - name: tailscale_authkey
-      prompt: "Enter your Tailscale auth key (press Enter to skip)"
-      private: true
   tasks:
     - name: Resolve docker_dir path
       ansible.builtin.set_fact:
@@ -61,6 +46,38 @@
           and fallback_ip.stdout != ''
           else 'localhost') }}
 
+    - name: Set service host
+      ansible.builtin.set_fact:
+        service_host_effective: "{{ service_host | trim if (service_host | default('') | trim) != '' else auto_ip }}"
+
+    - name: Prompt for Mullvad private key if missing
+      ansible.builtin.pause:
+        prompt: "Enter your Mullvad WireGuard private key"
+        echo: false
+      register: mullvad_private_key_prompt
+      when: mullvad_private_key | default('') | trim == ''
+
+    - name: Set Mullvad private key from prompt
+      ansible.builtin.set_fact:
+        mullvad_private_key: "{{ mullvad_private_key_prompt.user_input }}"
+      when: mullvad_private_key | default('') | trim == ''
+
+    - name: Prompt for Tailscale auth key if needed
+      ansible.builtin.pause:
+        prompt: "Enter your Tailscale auth key"
+        echo: false
+      register: tailscale_authkey_prompt
+      when:
+        - install_tailscale | bool
+        - tailscale_authkey | default('') | trim == ''
+
+    - name: Set Tailscale auth key from prompt
+      ansible.builtin.set_fact:
+        tailscale_authkey: "{{ tailscale_authkey_prompt.user_input }}"
+      when:
+        - install_tailscale | bool
+        - tailscale_authkey | default('') | trim == ''
+
     - name: Create parent directories
       ansible.builtin.command: "mkdir -p {{ item }}"
       register: mkdir_result
@@ -103,7 +120,7 @@
       failed_when:
         - mkdir_result.rc != 0
         - "'File exists' not in mkdir_result.stderr"
-      when: install_tailscale == "yes"
+      when: install_tailscale | bool
 
     - name: Remove prometheus.yml if it is a directory
       ansible.builtin.command: "test -d {{ docker_dir }}/prometheus/config/prometheus.yml"
@@ -162,13 +179,13 @@
       ansible.builtin.debug:
         msg: |
           Homelab is running! Open these in your browser:
-            Homepage:     http://{{ auto_ip }}:3000
-            Jellyfin:     http://{{ auto_ip }}:8096
-            Radarr:       http://{{ auto_ip }}:7878
-            Sonarr:       http://{{ auto_ip }}:8989
-            qBittorrent:  http://{{ auto_ip }}:8080
+            Homepage:     http://{{ service_host_effective }}:3000
+            Jellyfin:     http://{{ service_host_effective }}:8096
+            Radarr:       http://{{ service_host_effective }}:7878
+            Sonarr:       http://{{ service_host_effective }}:8989
+            qBittorrent:  http://{{ service_host_effective }}:8080
             password:     {{ qbit_password.stdout | default('check docker logs qbittorrent') }}
-            Prowlarr:     http://{{ auto_ip }}:9696
-            Bazarr:       http://{{ auto_ip }}:6767
-            Grafana:      http://{{ auto_ip }}:3001
-            Portainer:    https://{{ auto_ip }}:9443
+            Prowlarr:     http://{{ service_host_effective }}:9696
+            Bazarr:       http://{{ service_host_effective }}:6767
+            Grafana:      http://{{ service_host_effective }}:3001
+            Portainer:    https://{{ service_host_effective }}:9443

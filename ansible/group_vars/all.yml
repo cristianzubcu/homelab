@@ -1,0 +1,6 @@
+docker_dir: "~/homelab-data"
+homelab_timezone: "Europe/Amsterdam"
+service_host: ""
+install_tailscale: false
+tailscale_hostname: "mediaserver"
+tailscale_advertise_routes: "192.168.2.0/24"
