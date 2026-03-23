@@ -91,21 +91,13 @@ After deployment, configure each service through its web UI at `http://YOUR_IP:P
 
 **Homepage** (`:3000`) — Dashboard for the services in this stack.
 
-**Jellyfin** (`:8096`) — Media server. Add libraries such as Movies → `/data/movies` and TV Shows → `/data/tvshows`.
+**Jellyfin** (`:8096`) — Media server for your own files. 
 
 **Grafana** (`:3001`) — Login `admin` / `admin`. Add Prometheus data source at `http://prometheus:9090`. Import dashboards `1860` (system) and `193` (containers).
 
 **Portainer** (`:9443`) — Container management UI.
 
-**qBittorrent** (`:8080`) — BitTorrent client for torrent-based transfers. The temporary password is shown at the end of setup. Create two categories: `radarr` with path `/data/movies/_incoming` and `sonarr` with path `/data/tvshows/_incoming`.
-
-**Prowlarr** (`:9696`) — Add indexers. Add FlareSolverr proxy at `http://flaresolverr:8191`. Connect Radarr and Sonarr under Settings → Apps.
-
-**Radarr** (`:7878`) — Root folder: `/data/movies`. Download client: qBittorrent at host `wireguard`, port `8080`, category `radarr`.
-
-**Sonarr** (`:8989`) — Root folder: `/data/tvshows`. Download client: qBittorrent at host `wireguard`, port `8080`, category `sonarr`.
-
-**Bazarr** (`:6767`) — Connect to Radarr and Sonarr using their API keys (Settings → General in each app).
+**qBittorrent** (`:8080`) — BitTorrent client for torrent-based transfers. The temporary password is shown at the end of setup. Create categories as needed.
 
 **Tailscale** — If installed, approve the subnet route in the [admin console](https://login.tailscale.com/admin/machines).
 
