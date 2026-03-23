@@ -71,21 +71,13 @@ After deployment, configure each service through its web UI at `http://YOUR_IP:P
 
 **Homepage** (`:3000`) — Dashboard for the services in this stack.
 
-**Jellyfin** (`:8096`) — Media server. Add libraries such as Movies -> `/data/movies` and TV Shows -> `/data/tvshows`.
+**Jellyfin** (`:8096`) — Media server for own media. 
 
 **Grafana** (`:3001`) — Login `admin` / `admin`. Add Prometheus data source at `http://prometheus:9090`. Import dashboards `1860` (system) and `193` (containers).
 
 **Portainer** (`:9443`) — Container management UI.
 
-**qBittorrent** (`:8080`) — The temporary password is shown at the end of setup.
-
-**Prowlarr** (`:9696`) — Add indexers. Add FlareSolverr proxy at `http://flaresolverr:8191`. Connect Radarr and Sonarr under Settings -> Apps.
-
-**Radarr** (`:7878`) — Root folder: `/data/movies`. Download client: qBittorrent at host `wireguard`, port `8080`.
-
-**Sonarr** (`:8989`) — Root folder: `/data/tvshows`. Download client: qBittorrent at host `wireguard`, port `8080`.
-
-**Bazarr** (`:6767`) — Connect to Radarr and Sonarr using their API keys.
+**qBittorrent** (`:8080`) — For file transfers. The temporary password is shown at the end of setup.
 
 **Tailscale** — If installed, approve the subnet route in the [admin console](https://login.tailscale.com/admin/machines).
 
@@ -113,6 +105,4 @@ ansible-playbook -i ansible/inventory.yml ansible/playbooks/restore.yml
 ## Troubleshooting
 
 - **Docker pull fails with credential error**: `echo '{}' > ~/.docker/config.json`
-- **qBittorrent unreachable from Radarr/Sonarr**: Use `wireguard` as hostname, not `qbittorrent`.
 - **Jellyfin not showing new media**: Dashboard -> Scheduled Tasks -> Scan All Libraries.
-- **WSL mkdir errors**: Known NTFS issue. The playbooks handle this.
