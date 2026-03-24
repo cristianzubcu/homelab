@@ -1,8 +1,10 @@
 # Homelab
 
-Homelab setup using Docker Compose and Ansible.
+Homelab setup using Docker Compose.
 
 It includes Jellyfin, qBittorrent, Prometheus, Grafana, Portainer, and WireGuard. Tailscale can also be enabled for private remote access.
+
+Even though the container and folder setup is created automatically through Ansible, each service has to be manually configured via the UIs. Will fix that in the future.
 
 ## Contents
 - [Install](#install)
@@ -105,4 +107,3 @@ ansible-playbook -i ansible/inventory.yml ansible/playbooks/restore.yml
 ## Troubleshooting
 
 - **Docker pull fails with credential error**: `echo '{}' > ~/.docker/config.json`
-- **Jellyfin not showing new media**: Dashboard -> Scheduled Tasks -> Scan All Libraries.
